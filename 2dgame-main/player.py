@@ -29,6 +29,7 @@ class player:
         self.walk_left_animation = self.createanimation('Knight_10_Walk_Left.png', 4)
         self.walk_right_animation = self.createanimation('Knight_10_Walk_Right.png', 4)
         self.current_animation = self.walk_down_animation
+        self.Idle = True
 
 
 
@@ -40,10 +41,10 @@ class player:
             self.frame_list.append(self.sprite_sheet.get_image(x, 32, 32, 3, BLACK))
         return self.frame_list
 
-
-
     def detectkey(self,event):
         if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_a or event.key == pygame.K_d or event.key == pygame.K_w or event.key == pygame.K_s:
+                self.Idle = False
             if event.key == pygame.K_a:
                 self.player_x_direction = -1
                 self.current_animation = self.walk_left_animation
@@ -56,9 +57,11 @@ class player:
             if event.key == pygame.K_s:
                 self.player_y_direction = 1
                 self.current_animation = self.walk_down_animation
-            print(self.current_animation)
+
 
         if event.type == pygame.KEYUP:
+            if event.key == pygame.K_a or event.key == pygame.K_d or event.key == pygame.K_w or event.key == pygame.K_s:
+                self.Idle = True
             if event.key == pygame.K_a:
                 self.player_x_direction = 0
             if event.key == pygame.K_d:
@@ -67,6 +70,7 @@ class player:
                 self.player_y_direction = 0
             if event.key == pygame.K_s:
                 self.player_y_direction = 0
+
 
     def update_player_position(self):
         if self.player_x_direction > 0:
@@ -99,6 +103,8 @@ while run:
         last_update = current_time
         if frame >= len(Player.current_animation):
             frame = 0
+        if Player.Idle == True:
+            frame = 0
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
@@ -108,7 +114,7 @@ while run:
     Player.update_player_position()
     #event handler
 
-#	pygame.draw.rect(screen,BG,[player_x,player_y,player_width,player_height])
+#    pygame.draw.rect(screen,BLACK,[Player.player_x,Player.player_y,Player.player_width,Player.player_height])
     pygame.display.update()
 pygame.quit()
 

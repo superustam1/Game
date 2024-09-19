@@ -38,7 +38,7 @@ class player:
                      pygame.K_d: [1, self.walk_right_animation],
                      pygame.K_w: [-1, self.walk_up_animation],
                      pygame.K_s: [1, self.walk_down_animation]}
-        self.last_key_pressed = pygame.K_s
+        self.currently_pressed_keys = []
 
 
 
@@ -60,13 +60,20 @@ class player:
                     self.player_x_direction = self.keys[event.key][0]
                 elif event.key == pygame.K_w or event.key == pygame.K_s:
                     self.player_y_direction = self.keys[event.key][0]
+                self.currently_pressed_keys.append(event.key)
+
         if event.type == pygame.KEYUP:
             if event.key in self.keys:
-                self.idle = True
-                self.current_animation = self.keys[event.key][1]
-                if event.key == pygame.K_a or event.key == pygame.K_d:
+                self.currently_pressed_keys.remove(event.key)
+                if self.currently_pressed_keys == []:
+                    self.idle = True
+                if event.key == pygame.K_a and pygame.K_d not in self.currently_pressed_keys:
                     self.player_x_direction = 0
-                elif event.key == pygame.K_w or event.key == pygame.K_s:
+                elif event.key == pygame.K_d and pygame.K_a not in self.currently_pressed_keys:
+                    self.player_x_direction = 0
+                elif event.key == pygame.K_w and pygame.K_s not in self.currently_pressed_keys:
+                    self.player_y_direction = 0
+                elif event.key == pygame.K_s and pygame.K_w not in self.currently_pressed_keys:
                     self.player_y_direction = 0
 
 

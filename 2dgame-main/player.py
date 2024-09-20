@@ -1,3 +1,5 @@
+from idlelib.debugger_r import frametable
+
 import pygame
 from pygame.display import update
 
@@ -24,25 +26,33 @@ class player:
         self.player_speed = 0.1
         self.player_x_direction = 0
         self.player_y_direction = 0
-        self.walk_up_animation = self.createanimation('Knight_10_Walk_Up.png',4)
-        self.walk_down_animation = self.createanimation('Knight_10_Walk_Down.png', 4)
-        self.walk_left_animation = self.createanimation('Knight_10_Walk_Left.png', 4)
-        self.walk_right_animation = self.createanimation('Knight_10_Walk_Right.png', 4)
-        self.sword_up_animation = self.createanimation('Knight_10_Sword_Up.png', 4)
-        self.sword_down_animation = self.createanimation('Knight_10_Sword_Down.png', 4)
-        self.sword_left_animation = self.createanimation('Knight_10_Sword_Left.png', 4)
-        self.sword_right_animation = self.createanimation('Knight_10_Sword_Right.png', 4)
+        self.walk_up_animation = self.create_animation('Knight_10_Walk_Up.png',4)
+        self.walk_down_animation = self.create_animation('Knight_10_Walk_Down.png', 4)
+        self.walk_left_animation = self.create_animation('Knight_10_Walk_Left.png', 4)
+        self.walk_right_animation = self.create_animation('Knight_10_Walk_Right.png', 4)
+        self.sword_up_animation = self.create_animation('Knight_10_Sword_Up.png', 4)
+        self.sword_down_animation = self.create_animation('Knight_10_Sword_Down.png', 4)
+        self.sword_left_animation = self.create_animation('Knight_10_Sword_Left.png', 4)
+        self.sword_right_animation = self.create_animation('Knight_10_Sword_Right.png', 4)
         self.current_animation = self.walk_down_animation
         self.idle = True
-        self.keys = {pygame.K_a: [-1, self.walk_left_animation],
-                     pygame.K_d: [1, self.walk_right_animation],
-                     pygame.K_w: [-1, self.walk_up_animation],
-                     pygame.K_s: [1, self.walk_down_animation]}
+        self.keys = {pygame.K_a: [-1, self.walk_left_animation,self.sword_left_animation],
+                     pygame.K_d: [1, self.walk_right_animation,self.sword_right_animation],
+                     pygame.K_w: [-1, self.walk_up_animation,self.sword_up_animation],
+                     pygame.K_s: [1, self.walk_down_animation,self.sword_down_animation]}
         self.currently_pressed_keys = []
+        self.last_update = pygame.time.get_ticks()
+        self.last_sword_update = pygame.time.get_ticks()
+        self.frame = 0
+        self.last_key_pressed = pygame.K_s
+        self.animation_cooldown = 200
+        self.sword = False
+        self.sword_cooldown = False
+        self.sword_cooldown_time = 1000
 
 
 
-    def createanimation(self,sprite_sheet_image,animation_steps):
+    def create_animation(self,sprite_sheet_image,animation_steps):
         self.sprite_sheet_image = pygame.image.load(sprite_sheet_image).convert_alpha()
         self.sprite_sheet = spritesheet.SpriteSheet(self.sprite_sheet_image)
         self.frame_list = []
@@ -50,10 +60,19 @@ class player:
             self.frame_list.append(self.sprite_sheet.get_image(x, 32, 32, 3, BLACK))
         return self.frame_list
 
-    def detectinput(self,event):
-#        if event.type == pygame.MOUSEBUTTONDOWN:
+    def detect_input(self,event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1 and self.sword_cooldown == False:
+                self.sword = True
+                self.current_animation = self.keys[self.last_key_pressed][2]
+                self.animation_cooldown = 50
+                self.frame = 0
+                self.player_speed = 0.3
+                self.sword_cooldown = True
+                self.last_sword_update = self.current_time
         if event.type == pygame.KEYDOWN:
             if event.key in self.keys:
+                self.last_key_pressed = event.key
                 self.idle = False
                 self.current_animation = self.keys[event.key][1]
                 if event.key == pygame.K_a or event.key == pygame.K_d:
@@ -67,16 +86,10 @@ class player:
                 self.currently_pressed_keys.remove(event.key)
                 if self.currently_pressed_keys == []:
                     self.idle = True
-                if event.key == pygame.K_a and pygame.K_d not in self.currently_pressed_keys:
+                if pygame.K_a not in self.currently_pressed_keys and pygame.K_d not in self.currently_pressed_keys:
                     self.player_x_direction = 0
-                elif event.key == pygame.K_d and pygame.K_a not in self.currently_pressed_keys:
-                    self.player_x_direction = 0
-                elif event.key == pygame.K_w and pygame.K_s not in self.currently_pressed_keys:
+                if pygame.K_w not in self.currently_pressed_keys and pygame.K_s not in self.currently_pressed_keys:
                     self.player_y_direction = 0
-                elif event.key == pygame.K_s and pygame.K_w not in self.currently_pressed_keys:
-                    self.player_y_direction = 0
-
-
 
     def update_player_position(self,):
         if self.player_x_direction > 0:
@@ -93,34 +106,38 @@ class player:
                 self.player_y += self.player_y_direction * self.player_speed
 
 
+    def play_animation(self,):
+        self.current_time = pygame.time.get_ticks()
+        if self.current_time - self.last_update >= self.animation_cooldown:
+            self.frame += 1
+            self.last_update = self.current_time
+        if self.frame >= len(self.current_animation):
+            self.frame = 0
+            self.sword = False
+            self.current_animation = self.keys[self.last_key_pressed][1]
+            self.animation_cooldown = 200
+            self.player_speed = 0.1
+        if self.idle and self.sword == False:
+            self.frame = 0
+        if self.current_time - self.last_sword_update >= self.sword_cooldown_time:
+            self.sword_cooldown = False
+        screen.blit(self.current_animation[self.frame],(self.player_x - self.player_width / 2, self.player_y - self.player_height / 2))
 
 
-last_update = pygame.time.get_ticks()
-animation_cooldown = 200
-frame = 0
+
+
+
 Player = player()
 
 run = True
 while run:
     screen.fill(BG)
-    current_time = pygame.time.get_ticks()
-    if current_time - last_update >= animation_cooldown:
-        frame += 1
-        last_update = current_time
-        if frame >= len(Player.current_animation):
-            frame = 0
-        if Player.idle == True:
-            frame = 0
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
-        Player.detectinput(event)
-
-    screen.blit(Player.current_animation[frame], (Player.player_x-Player.player_width/2, Player.player_y-Player.player_height/2))
+        Player.detect_input(event)
+    Player.play_animation()
     Player.update_player_position()
-    #event handler
-
-#    pygame.draw.rect(screen,BLACK,[Player.player_x,Player.player_y,Player.player_width,Player.player_height])
+    #    pygame.draw.rect(screen,BLACK,[Player.player_x,Player.player_y,Player.player_width,Player.player_height])
     pygame.display.update()
 pygame.quit()
-

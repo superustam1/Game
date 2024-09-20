@@ -52,35 +52,35 @@ class player:
 
 
 
-    def create_animation(self,sprite_sheet_image,animation_steps):
-        self.sprite_sheet_image = pygame.image.load(sprite_sheet_image).convert_alpha()
-        self.sprite_sheet = spritesheet.SpriteSheet(self.sprite_sheet_image)
-        self.frame_list = []
-        for x in range(animation_steps):
-            self.frame_list.append(self.sprite_sheet.get_image(x, 32, 32, 3, BLACK))
-        return self.frame_list
+    def switch_animation(self,new_animation=None):
+        if self.sword == False:
+            self.current_animation = new_animation
+        elif self.sword:
+            self.current_animation = self.keys[self.last_key_pressed][2]
 
     def detect_input(self,event):
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1 and self.sword_cooldown == False:
                 self.sword = True
-                self.current_animation = self.keys[self.last_key_pressed][2]
                 self.animation_cooldown = 50
+                self.switch_animation()
                 self.frame = 0
                 self.player_speed = 0.3
                 self.sword_cooldown = True
                 self.last_sword_update = self.current_time
+            # This if is for interacting with things
+            if event.button == 2:
+                pass
         if event.type == pygame.KEYDOWN:
             if event.key in self.keys:
                 self.last_key_pressed = event.key
+                self.currently_pressed_keys.append(event.key)
+                self.switch_animation(self.keys[event.key][1])
                 self.idle = False
-                self.current_animation = self.keys[event.key][1]
                 if event.key == pygame.K_a or event.key == pygame.K_d:
                     self.player_x_direction = self.keys[event.key][0]
                 elif event.key == pygame.K_w or event.key == pygame.K_s:
                     self.player_y_direction = self.keys[event.key][0]
-                self.currently_pressed_keys.append(event.key)
-
         if event.type == pygame.KEYUP:
             if event.key in self.keys:
                 self.currently_pressed_keys.remove(event.key)
@@ -90,21 +90,6 @@ class player:
                     self.player_x_direction = 0
                 if pygame.K_w not in self.currently_pressed_keys and pygame.K_s not in self.currently_pressed_keys:
                     self.player_y_direction = 0
-
-    def update_player_position(self,):
-        if self.player_x_direction > 0:
-            if self.player_x <500 - self.player_width:
-                self.player_x += self.player_x_direction * self.player_speed
-        if self.player_x_direction < 0:
-            if self.player_x > 0:
-                self.player_x += self.player_x_direction * self.player_speed
-        if self.player_y_direction > 0:
-            if self.player_y <500 - self.player_height:
-                self.player_y += self.player_y_direction * self.player_speed
-        if self.player_y_direction < 0:
-            if self.player_y > 0:
-                self.player_y += self.player_y_direction * self.player_speed
-
 
     def play_animation(self,):
         self.current_time = pygame.time.get_ticks()
@@ -125,6 +110,28 @@ class player:
 
 
 
+
+
+    def update_player_position(self,):
+        if self.player_x_direction > 0:
+            if self.player_x <500 - self.player_width:
+                self.player_x += self.player_x_direction * self.player_speed
+        if self.player_x_direction < 0:
+            if self.player_x > 0:
+                self.player_x += self.player_x_direction * self.player_speed
+        if self.player_y_direction > 0:
+            if self.player_y <500 - self.player_height:
+                self.player_y += self.player_y_direction * self.player_speed
+        if self.player_y_direction < 0:
+            if self.player_y > 0:
+                self.player_y += self.player_y_direction * self.player_speed
+    def create_animation(self,sprite_sheet_image,animation_steps):
+        self.sprite_sheet_image = pygame.image.load(sprite_sheet_image).convert_alpha()
+        self.sprite_sheet = spritesheet.SpriteSheet(self.sprite_sheet_image)
+        self.frame_list = []
+        for x in range(animation_steps):
+            self.frame_list.append(self.sprite_sheet.get_image(x, 32, 32, 3, BLACK))
+        return self.frame_list
 
 
 Player = player()

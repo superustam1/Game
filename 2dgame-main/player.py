@@ -69,7 +69,7 @@ class Player:
                 self.animation_cooldown = 50
                 self.switch_animation()
                 self.frame = 0
-                self.player_speed = 0.4
+                self.player_speed = 0.25
                 self.sword_cooldown = True
                 self.last_sword_update = self.current_time
             # This if is for interacting with things
@@ -87,7 +87,7 @@ class Player:
                 elif event.key == pygame.K_w or event.key == pygame.K_s:
                     self.player_y_direction = self.keys[event.key][0]
                 if self.player_x_direction != 0 and self.player_y_direction != 0:
-                    self.vector_correction = 0.5
+                    self.vector_correction = 0.7071
 
         if event.type == pygame.KEYUP:
             if event.key in self.keys:

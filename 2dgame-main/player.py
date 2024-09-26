@@ -17,8 +17,10 @@ pygame.display.set_caption('Spritesheets')
 
 
 class Player:
-    def __init__(self, Screen):
+    def __init__(self, Screen,ScreenWidth,ScreenHeight):
         self.screen = Screen
+        self.screenwidth = ScreenWidth
+        self.screenheight = ScreenHeight
 
         self.walk_up_animation = self.create_animation('Knight_10_Walk_Up.png',4)
         self.walk_down_animation = self.create_animation('Knight_10_Walk_Down.png', 4)
@@ -124,13 +126,13 @@ class Player:
 
     def update_player_position(self,):
         if self.player_x_direction > 0:
-            if self.player_x <500 - self.player_width:
+            if self.player_x <self.screenwidth - self.player_width:
                 self.player_x += self.player_x_direction * self.player_speed * self.vector_correction
         if self.player_x_direction < 0:
             if self.player_x > 0:
                 self.player_x += self.player_x_direction * self.player_speed * self.vector_correction
         if self.player_y_direction > 0:
-            if self.player_y <500 - self.player_height:
+            if self.player_y <self.screenheight - self.player_height:
                 self.player_y += self.player_y_direction * self.player_speed * self.vector_correction
         if self.player_y_direction < 0:
             if self.player_y > 0:
@@ -144,7 +146,7 @@ class Player:
         return self.frame_list
 
 
-player = Player(screen)
+player = Player(screen,SCREEN_WIDTH,SCREEN_HEIGHT)
 
 run = True
 while run:

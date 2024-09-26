@@ -35,6 +35,7 @@ class Player:
         self.idle = True
         self.frame = 0
         self.animation_cooldown = 200
+
         self.sword = False
         self.sword_cooldown = False
         self.sword_cooldown_time = 1000
@@ -46,10 +47,12 @@ class Player:
         self.player_height = 50
         self.player_x = 250
         self.player_y = 250
-        self.player_speed = 0.1
+        self.player_speed = 0.2
         self.player_x_direction = 0
         self.player_y_direction = 0
         self.vector_correction = 1
+        self.position_change_cooldown = 1
+        self.last_position_update = pygame.time.get_ticks()
 
         self.keys = {pygame.K_a: [-1, self.walk_left_animation,self.sword_left_animation],
                      pygame.K_d: [1, self.walk_right_animation,self.sword_right_animation],
@@ -57,6 +60,9 @@ class Player:
                      pygame.K_s: [1, self.walk_down_animation,self.sword_down_animation]}
         self.currently_pressed_keys = []
         self.last_key_pressed = pygame.K_s
+
+    def update(self):
+        self.current_time = pygame.time.get_ticks()
 
     def switch_animation(self,new_animation=None):
         if self.sword == False:
@@ -71,7 +77,7 @@ class Player:
                 self.animation_cooldown = 50
                 self.switch_animation()
                 self.frame = 0
-                self.player_speed = 0.25
+                self.player_speed = 0.5
                 self.sword_cooldown = True
                 self.last_sword_update = self.current_time
             # This if is for interacting with things
@@ -100,11 +106,10 @@ class Player:
                     self.player_x_direction = 0
                 if pygame.K_w not in self.currently_pressed_keys and pygame.K_s not in self.currently_pressed_keys:
                     self.player_y_direction = 0
-                if self.player_x_direction + self.player_y_direction != 1 or self.player_x_direction + self.player_y_direction != -1:
+                if self.player_x_direction + self.player_y_direction in (-1,1):
                     self.vector_correction = 1
 
     def play_animation(self,):
-        self.current_time = pygame.time.get_ticks()
         if self.current_time - self.last_update >= self.animation_cooldown:
             self.frame += 1
             self.last_update = self.current_time
@@ -113,7 +118,7 @@ class Player:
             self.sword = False
             self.current_animation = self.keys[self.last_key_pressed][1]
             self.animation_cooldown = 200
-            self.player_speed = 0.1
+            self.player_speed = 0.2
         if self.idle and self.sword == False:
             self.frame = 0
         if self.current_time - self.last_sword_update >= self.sword_cooldown_time:
@@ -125,18 +130,20 @@ class Player:
 
 
     def update_player_position(self,):
-        if self.player_x_direction > 0:
-            if self.player_x <self.screenwidth - self.player_width:
-                self.player_x += self.player_x_direction * self.player_speed * self.vector_correction
-        if self.player_x_direction < 0:
-            if self.player_x > 0:
-                self.player_x += self.player_x_direction * self.player_speed * self.vector_correction
-        if self.player_y_direction > 0:
-            if self.player_y <self.screenheight - self.player_height:
-                self.player_y += self.player_y_direction * self.player_speed * self.vector_correction
-        if self.player_y_direction < 0:
-            if self.player_y > 0:
-                self.player_y += self.player_y_direction * self.player_speed * self.vector_correction
+        if self.current_time - self.last_position_update >= 1:
+            if self.player_x_direction > 0:
+                if self.player_x <self.screenwidth - self.player_width:
+                    self.player_x += self.player_x_direction * self.player_speed * self.vector_correction
+            if self.player_x_direction < 0:
+                if self.player_x > 0:
+                    self.player_x += self.player_x_direction * self.player_speed * self.vector_correction
+            if self.player_y_direction > 0:
+                if self.player_y <self.screenheight - self.player_height:
+                    self.player_y += self.player_y_direction * self.player_speed * self.vector_correction
+            if self.player_y_direction < 0:
+                if self.player_y > 0:
+                    self.player_y += self.player_y_direction * self.player_speed * self.vector_correction
+            self.last_position_update = self.current_time
     def create_animation(self,sprite_sheet_image,animation_steps):
         self.sprite_sheet_image = pygame.image.load(sprite_sheet_image).convert_alpha()
         self.sprite_sheet = spritesheet.SpriteSheet(self.sprite_sheet_image)
@@ -155,6 +162,7 @@ while run:
         if event.type == pygame.QUIT:
             run = False
         player.detect_input(event)
+    player.update()
     player.play_animation()
     player.update_player_position()
     #    pygame.draw.rect(screen,BLACK,[Player.player_x,Player.player_y,Player.player_width,Player.player_height])

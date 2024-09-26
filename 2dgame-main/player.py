@@ -1,8 +1,4 @@
-from idlelib.debugger_r import frametable
-
 import pygame
-from pygame.display import update
-
 import spritesheet
 
 pygame.init()
@@ -57,20 +53,79 @@ class Player:
         self.keys = {pygame.K_a: [-1, self.walk_left_animation,self.sword_left_animation],
                      pygame.K_d: [1, self.walk_right_animation,self.sword_right_animation],
                      pygame.K_w: [-1, self.walk_up_animation,self.sword_up_animation],
-                     pygame.K_s: [1, self.walk_down_animation,self.sword_down_animation]}
+                     pygame.K_s: [1, self.walk_down_animation,self.sword_down_animation],
+                     "None":0}
         self.currently_pressed_keys = []
         self.last_key_pressed = pygame.K_s
+        self.xkeys_pressed = ["None"]
+        self.ykeys_pressed = ["None"]
+
+
 
     def update(self):
         self.current_time = pygame.time.get_ticks()
+        self.play_animation()
+        self.update_player_position()
 
     def switch_animation(self,new_animation=None):
         if self.sword == False:
-            self.current_animation = new_animation
+            if self.currently_pressed_keys:
+                self.current_animation = self.keys[self.currently_pressed_keys[-1]][1]
+            else:
+                self.current_animation = self.keys[self.last_key_pressed][1]
         elif self.sword:
-            self.current_animation = self.keys[self.last_key_pressed][2]
+            if self.currently_pressed_keys:
+                self.current_animation = self.keys[self.currently_pressed_keys[-1]][2]
+            else:
+                self.current_animation = self.keys[self.last_key_pressed][2]
+
+
+    def changedirection(self, Key):
+        if pygame.K_a not in self.currently_pressed_keys and pygame.K_d not in self.currently_pressed_keys:
+            self.player_x_direction = 0
+        if pygame.K_w not in self.currently_pressed_keys and pygame.K_s not in self.currently_pressed_keys:
+            self.player_y_direction = 0
+
+        if pygame.K_a in self.currently_pressed_keys or pygame.K_d in self.currently_pressed_keys:
+            self.player_x_direction = self.keys[self.xkeys_pressed[-1]][0]
+        if pygame.K_w in self.currently_pressed_keys or pygame.K_s in self.currently_pressed_keys:
+            self.player_y_direction = self.keys[self.ykeys_pressed[-1]][0]
+        self.switch_animation()
+
+        if self.player_x_direction + self.player_y_direction in (-1, 1):
+            self.vector_correction = 1
+        else:
+            self.vector_correction = 0.7071
 
     def detect_input(self,event):
+        if event.type == pygame.KEYDOWN:
+            if event.key in self.keys:
+                self.currently_pressed_keys.append(event.key)
+                self.idle = False
+                if event.key in (pygame.K_a, pygame.K_d):
+                    self.xkeys_pressed.append(event.key)
+                else:
+                    self.ykeys_pressed.append(event.key)
+
+                self.changedirection(event.key)
+
+
+        if event.type == pygame.KEYUP:
+            if event.key in self.keys:
+                self.last_key_pressed = event.key
+                self.currently_pressed_keys.remove(event.key)
+                if self.currently_pressed_keys == []:
+                    self.idle = True
+                if event.key in self.xkeys_pressed:
+                    self.xkeys_pressed.remove(event.key)
+                else:
+                    self.ykeys_pressed.remove(event.key)
+
+                self.changedirection(event.key)
+
+
+
+
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1 and self.sword_cooldown == False:
                 self.sword = True
@@ -84,31 +139,6 @@ class Player:
             if event.button == 2:
                 pass
 
-        if event.type == pygame.KEYDOWN:
-            if event.key in self.keys:
-                self.last_key_pressed = event.key
-                self.currently_pressed_keys.append(event.key)
-                self.switch_animation(self.keys[event.key][1])
-                self.idle = False
-                if event.key == pygame.K_a or event.key == pygame.K_d:
-                    self.player_x_direction = self.keys[event.key][0]
-                elif event.key == pygame.K_w or event.key == pygame.K_s:
-                    self.player_y_direction = self.keys[event.key][0]
-                if self.player_x_direction != 0 and self.player_y_direction != 0:
-                    self.vector_correction = 0.7071
-
-        if event.type == pygame.KEYUP:
-            if event.key in self.keys:
-                self.currently_pressed_keys.remove(event.key)
-                if self.currently_pressed_keys == []:
-                    self.idle = True
-                if pygame.K_a not in self.currently_pressed_keys and pygame.K_d not in self.currently_pressed_keys:
-                    self.player_x_direction = 0
-                if pygame.K_w not in self.currently_pressed_keys and pygame.K_s not in self.currently_pressed_keys:
-                    self.player_y_direction = 0
-                if self.player_x_direction + self.player_y_direction in (-1,1):
-                    self.vector_correction = 1
-
     def play_animation(self,):
         if self.current_time - self.last_update >= self.animation_cooldown:
             self.frame += 1
@@ -116,7 +146,7 @@ class Player:
         if self.frame >= len(self.current_animation):
             self.frame = 0
             self.sword = False
-            self.current_animation = self.keys[self.last_key_pressed][1]
+
             self.animation_cooldown = 200
             self.player_speed = 0.2
         if self.idle and self.sword == False:
@@ -124,9 +154,6 @@ class Player:
         if self.current_time - self.last_sword_update >= self.sword_cooldown_time:
             self.sword_cooldown = False
         self.screen.blit(self.current_animation[self.frame],(self.player_x - self.player_width / 2, self.player_y - self.player_height / 2))
-
-
-
 
 
     def update_player_position(self,):
@@ -163,8 +190,6 @@ while run:
             run = False
         player.detect_input(event)
     player.update()
-    player.play_animation()
-    player.update_player_position()
     #    pygame.draw.rect(screen,BLACK,[Player.player_x,Player.player_y,Player.player_width,Player.player_height])
     pygame.display.update()
 pygame.quit()

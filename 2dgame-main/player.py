@@ -54,7 +54,7 @@ class Player:
                      pygame.K_d: [1, self.walk_right_animation,self.sword_right_animation],
                      pygame.K_w: [-1, self.walk_up_animation,self.sword_up_animation],
                      pygame.K_s: [1, self.walk_down_animation,self.sword_down_animation],
-                     "None":0}
+                     "None":[0]}
         self.currently_pressed_keys = []
         self.last_key_pressed = pygame.K_s
         self.xkeys_pressed = ["None"]
@@ -65,27 +65,19 @@ class Player:
         self.play_animation()
         self.update_player_position()
 
-    def switch_animation(self,new_animation=None):
-        if self.sword == False:
-            if self.currently_pressed_keys:
-                self.current_animation = self.keys[self.currently_pressed_keys[-1]][1]
-            else:
-                self.current_animation = self.keys[self.last_key_pressed][1]
-        elif self.sword:
-            if self.currently_pressed_keys:
-                self.current_animation = self.keys[self.currently_pressed_keys[-1]][2]
-            else:
-                self.current_animation = self.keys[self.last_key_pressed][2]
+    def switch_animation(self,Index=1):
+        if self.sword:
+            Index = 2
+        if self.currently_pressed_keys:
+            self.current_animation = self.keys[self.currently_pressed_keys[-1]][Index]
+        else:
+            self.current_animation = self.keys[self.last_key_pressed][Index]
 
-    def changedirection(self, Key):
-        if pygame.K_a not in self.currently_pressed_keys and pygame.K_d not in self.currently_pressed_keys:
-            self.player_x_direction = 0
-        if pygame.K_w not in self.currently_pressed_keys and pygame.K_s not in self.currently_pressed_keys:
-            self.player_y_direction = 0
 
-        if pygame.K_a in self.currently_pressed_keys or pygame.K_d in self.currently_pressed_keys:
+    def changedirection(self,):
+        if pygame.K_a in self.currently_pressed_keys or pygame.K_d in self.currently_pressed_keys or "None":
             self.player_x_direction = self.keys[self.xkeys_pressed[-1]][0]
-        if pygame.K_w in self.currently_pressed_keys or pygame.K_s in self.currently_pressed_keys:
+        if pygame.K_w in self.currently_pressed_keys or pygame.K_s in self.currently_pressed_keys or "None":
             self.player_y_direction = self.keys[self.ykeys_pressed[-1]][0]
         self.switch_animation()
 
@@ -104,7 +96,7 @@ class Player:
                 else:
                     self.ykeys_pressed.append(event.key)
 
-                self.changedirection(event.key)
+                self.changedirection()
 
         if event.type == pygame.KEYUP:
             if event.key in self.keys:
@@ -117,7 +109,7 @@ class Player:
                 else:
                     self.ykeys_pressed.remove(event.key)
 
-                self.changedirection(event.key)
+                self.changedirection()
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1 and self.sword_cooldown == False:
@@ -139,7 +131,6 @@ class Player:
         if self.frame >= len(self.current_animation):
             self.frame = 0
             self.sword = False
-
             self.animation_cooldown = 200
             self.player_speed = 0.2
         if self.idle and self.sword == False:

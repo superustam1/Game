@@ -60,8 +60,6 @@ class Player:
         self.xkeys_pressed = ["None"]
         self.ykeys_pressed = ["None"]
 
-
-
     def update(self):
         self.current_time = pygame.time.get_ticks()
         self.play_animation()
@@ -78,7 +76,6 @@ class Player:
                 self.current_animation = self.keys[self.currently_pressed_keys[-1]][2]
             else:
                 self.current_animation = self.keys[self.last_key_pressed][2]
-
 
     def changedirection(self, Key):
         if pygame.K_a not in self.currently_pressed_keys and pygame.K_d not in self.currently_pressed_keys:
@@ -109,7 +106,6 @@ class Player:
 
                 self.changedirection(event.key)
 
-
         if event.type == pygame.KEYUP:
             if event.key in self.keys:
                 self.last_key_pressed = event.key
@@ -122,9 +118,6 @@ class Player:
                     self.ykeys_pressed.remove(event.key)
 
                 self.changedirection(event.key)
-
-
-
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1 and self.sword_cooldown == False:
@@ -155,7 +148,6 @@ class Player:
             self.sword_cooldown = False
         self.screen.blit(self.current_animation[self.frame],(self.player_x - self.player_width / 2, self.player_y - self.player_height / 2))
 
-
     def update_player_position(self,):
         if self.current_time - self.last_position_update >= 1:
             if self.player_x_direction > 0:
@@ -171,6 +163,7 @@ class Player:
                 if self.player_y > 0:
                     self.player_y += self.player_y_direction * self.player_speed * self.vector_correction
             self.last_position_update = self.current_time
+
     def create_animation(self,sprite_sheet_image,animation_steps):
         self.sprite_sheet_image = pygame.image.load(sprite_sheet_image).convert_alpha()
         self.sprite_sheet = spritesheet.SpriteSheet(self.sprite_sheet_image)
@@ -178,7 +171,6 @@ class Player:
         for x in range(animation_steps):
             self.frame_list.append(self.sprite_sheet.get_image(x, 32, 32, 3, BLACK))
         return self.frame_list
-
 
 player = Player(screen,SCREEN_WIDTH,SCREEN_HEIGHT)
 

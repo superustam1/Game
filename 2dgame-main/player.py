@@ -133,6 +133,7 @@ class Player:
             self.sword = False
             self.animation_cooldown = 200
             self.player_speed = 0.2
+            self.switch_animation()
         if self.idle and self.sword == False:
             self.frame = 0
         if self.current_time - self.last_sword_update >= self.sword_cooldown_time:

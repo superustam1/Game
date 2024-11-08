@@ -1,16 +1,37 @@
 import pygame
 import spritesheet
+from pytmx.util_pygame import load_pygame
 
-pygame.init()
-
-SCREEN_WIDTH = 500
-SCREEN_HEIGHT = 500
+SCREEN_WIDTH = 600
+SCREEN_HEIGHT = 400
 BG = (50, 50, 50)
 BLACK = (0, 0, 0)
 
+pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption('Spritesheets')
+tmx_data = load_pygame('./Maps/FirstMap.tmx')
+sprite_group = pygame.sprite.Group()
 
+class Tile(pygame.sprite.Sprite):
+    def __init__(self, pos, surf, groups):
+        super().__init__(groups)
+        self.image = surf
+        self.rect = self.image.get_rect(topleft = pos)
+
+def CreateLayerImage(layerName):
+    layer_surface = pygame.Surface((600, 400))
+    for layer in tmx_data.visible_layers:
+        if hasattr(layer,'data') and layer.name == layerName:
+            for x,y,surf in layer.tiles():
+                pos = (x * 32, y * 32)
+                layer_surface.blit(surf, pos)
+    return layer_surface
+
+for layer in tmx_data.visible_layers:
+    if hasattr(layer,'data') and layer.name != "Ground":
+        for x,y,surf in layer.tiles():
+            pos = (x * 32, y * 32)
+            Tile(pos=pos, surf=surf, groups=sprite_group)
 
 class Player:
     def __init__(self, Screen,ScreenWidth,ScreenHeight):
@@ -43,7 +64,7 @@ class Player:
         self.player_height = 50
         self.player_x = 250
         self.player_y = 250
-        self.player_speed = 0.2
+        self.player_speed = 0.15
         self.player_x_direction = 0
         self.player_y_direction = 0
         self.vector_correction = 1
@@ -132,13 +153,13 @@ class Player:
             self.frame = 0
             self.sword = False
             self.animation_cooldown = 200
-            self.player_speed = 0.2
+            self.player_speed = 0.15
             self.switch_animation()
         if self.idle and self.sword == False:
             self.frame = 0
         if self.current_time - self.last_sword_update >= self.sword_cooldown_time:
             self.sword_cooldown = False
-        self.screen.blit(self.current_animation[self.frame],(self.player_x - self.player_width / 2, self.player_y - self.player_height / 2))
+        self.screen.blit(self.current_animation[self.frame],(self.player_x - 23, self.player_y - 22))
 
     def update_player_position(self,):
         if self.current_time - self.last_position_update >= 1:
@@ -165,15 +186,19 @@ class Player:
         return self.frame_list
 
 player = Player(screen,SCREEN_WIDTH,SCREEN_HEIGHT)
-
+Ground_Layer = CreateLayerImage("Ground")
 run = True
+
+
 while run:
-    screen.fill(BG)
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
         player.detect_input(event)
+    screen.blit(Ground_Layer, (0, 0))
     player.update()
-    #    pygame.draw.rect(screen,BLACK,[Player.player_x,Player.player_y,Player.player_width,Player.player_height])
+    sprite_group.draw(screen)
+#    pygame.draw.rect(screen,BLACK,[player.player_x,player.player_y,player.player_width,player.player_height])
     pygame.display.update()
 pygame.quit()

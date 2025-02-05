@@ -9,14 +9,14 @@ class Player(pygame.sprite.Sprite):
         self.screenwidth = ScreenWidth
         self.screenheight = ScreenHeight
 
-        self.walk_up_animation = self.create_animation('Knight_10_Walk_Up.png',4)
-        self.walk_down_animation = self.create_animation('Knight_10_Walk_Down.png', 4)
-        self.walk_left_animation = self.create_animation('Knight_10_Walk_Left.png', 4)
-        self.walk_right_animation = self.create_animation('Knight_10_Walk_Right.png', 4)
-        self.sword_up_animation = self.create_animation('Knight_10_Sword_Up.png', 4)
-        self.sword_down_animation = self.create_animation('Knight_10_Sword_Down.png', 4)
-        self.sword_left_animation = self.create_animation('Knight_10_Sword_Left.png', 4)
-        self.sword_right_animation = self.create_animation('Knight_10_Sword_Right.png', 4)
+        self.walk_up_animation = self.create_animation('CharacterModels/Knight_10_Walk_Up.png',4)
+        self.walk_down_animation = self.create_animation('CharacterModels/Knight_10_Walk_Down.png', 4)
+        self.walk_left_animation = self.create_animation('CharacterModels/Knight_10_Walk_Left.png', 4)
+        self.walk_right_animation = self.create_animation('CharacterModels/Knight_10_Walk_Right.png', 4)
+        self.sword_up_animation = self.create_animation('CharacterModels/Knight_10_Sword_Up.png', 4)
+        self.sword_down_animation = self.create_animation('CharacterModels/Knight_10_Sword_Down.png', 4)
+        self.sword_left_animation = self.create_animation('CharacterModels/Knight_10_Sword_Left.png', 4)
+        self.sword_right_animation = self.create_animation('CharacterModels/Knight_10_Sword_Right.png', 4)
 
         self.current_animation = self.walk_down_animation
         self.idle = True
@@ -54,7 +54,7 @@ class Player(pygame.sprite.Sprite):
         self.padding_x = 23
         self.padding_y = 17
         self.hitbox = pygame.Rect(self.rect.x + self.padding_x,
-                                  self.rect.y + self.padding_y, 50, 62)
+                                  self.rect.y + self.padding_y, 50, 58)
 
         self.next_x = self.player_x + self.player_x_direction * self.player_speed * self.vector_correction
         self.next_y = self.player_y + self.player_y_direction * self.player_speed * self.vector_correction
@@ -77,7 +77,7 @@ class Player(pygame.sprite.Sprite):
         return self.frame_list
 
 
-    def detect_input(self,event):
+    def detect_input(self,event,All_sprites, Apples):
         if event.type == pygame.KEYDOWN:
             if event.key in self.keys:
                 self.currently_pressed_keys.append(event.key)
@@ -103,17 +103,22 @@ class Player(pygame.sprite.Sprite):
                 self.changedirection()
 
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1 and self.sword_cooldown == False:
-                self.using_sword = True
-                self.animation_cooldown = 50
-                self.switch_animation()
-                self.frame = 0
-                self.player_speed = 5
-                self.sword_cooldown = True
-                self.last_sword_use = self.current_time
-            # This if is for interacting with things
-            if event.button == 2:
-                pass
+            self.clicked_sprite = False
+            for sprite in Apples:
+                if sprite.Detect_Click(event):
+                    All_sprites.remove(sprite)  # Remove the sprite from the group, making it disappear
+                    self.clicked_sprite = True
+                    break
+            if event.button == 1 and self.sword_cooldown == False and self.clicked_sprite == False:
+              self.using_sword = True
+              self.animation_cooldown = 50
+              self.switch_animation()
+              self.frame = 0
+              self.player_speed = 5
+              self.sword_cooldown = True
+              self.last_sword_use = self.current_time
+
+
 
     def update(self,walls_group):
         self.current_time = pygame.time.get_ticks()
@@ -153,15 +158,15 @@ class Player(pygame.sprite.Sprite):
             next_full_hitbox = self.hitbox.move(self.next_x - self.hitbox.x + self.padding_x, self.next_y - self.hitbox.y + self.padding_y)
 
             # Create thin hitboxes for precise wall collision on each side
-            self.next_hitbox = self.hitbox.move(2, self.next_y - self.hitbox.y + self.padding_y + self.hitbox.height - 4)
+            self.next_hitbox = self.hitbox.move(2, self.next_y - self.hitbox.y + self.padding_y + self.hitbox.height)
             self.next_hitbox.height = 4
             self.next_hitbox.width = 46
 
             # Define smaller side rects based on player dimensions
-            self.left_side = pygame.Rect(self.next_hitbox.left - 1, self.next_hitbox.top, 1, self.next_hitbox.height)
-            self.right_side = pygame.Rect(self.next_hitbox.right, self.next_hitbox.top, 1, self.next_hitbox.height)
-            self.top_side = pygame.Rect(self.next_hitbox.left, self.next_hitbox.top - 1, self.next_hitbox.width, 1)
-            self.bottom_side = pygame.Rect(self.next_hitbox.left, self.next_hitbox.bottom, self.next_hitbox.width, 1)
+            self.left_side = pygame.Rect(self.next_hitbox.left - 1, self.next_hitbox.top, 1, self.next_hitbox.height-1)
+            self.right_side = pygame.Rect(self.next_hitbox.right, self.next_hitbox.top, 1, self.next_hitbox.height-1)
+            self.top_side = pygame.Rect(self.next_hitbox.left + 1, self.next_hitbox.top - 1, self.next_hitbox.width-2, 1)
+            self.bottom_side = pygame.Rect(self.next_hitbox.left + 1, self.next_hitbox.bottom, self.next_hitbox.width-2, 1)
 
             # Check collisions with walls
             self.is_touching_left = self.left_side.collidelist(walls_group) != -1
@@ -218,7 +223,4 @@ class Player(pygame.sprite.Sprite):
         self.vector_correction = 1
         if self.player_x_direction + self.player_y_direction in (-2, 0, 2):
             self.vector_correction = 0.7071
-
-
-
 
